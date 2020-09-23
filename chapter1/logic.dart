@@ -171,6 +171,47 @@ BinaryDecisionTree TreeBuilder(
       TreeBuilder(f, variables, varIndex + 1, path + "1"));
 }
 
+// a literal is a Variable or the negation of a Variable
+
+// a Clause is a disjunction of literals
+class Clause {
+  List<Formula> Literals;
+  Clause() {
+    Literals = new List<Formula>();
+  }
+
+  bool IsLiteral(Formula p) {
+    return p is Variable || (p is Not && (p as Not).P is Variable);
+  }
+
+  bool LiteralEquals(Formula p, Formula q) {
+    if (p is Variable && q is Variable) {
+      return p == q;
+    }
+    if (p is Not && q is Not) {
+      return LiteralEquals((p as Not).P, (q as Not).P);
+    }
+    return false;
+  }
+
+  bool Contains(Formula literal) {
+    return Literals.fold(
+        false,
+        (previousValue, element) =>
+            previousValue && LiteralEquals(element, literal));
+  }
+
+  Clause RemoveLiteral(Formula literal) {
+    var result = new Clause();
+    Literals.forEach((element) {
+      if (!LiteralEquals(element, literal)) {
+        result.Literals.add(element);
+      }
+    });
+    return result;
+  }
+}
+
 void main() {
   Variable x = Variable(true);
   Variable y = Variable(false);
